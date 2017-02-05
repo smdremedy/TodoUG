@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">TodoEkspert</string>
+    <string name="enter_your_username">Enter your username</string>
+    <string name="enter_your_password">Enter your password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="this_field_is_required">This field is required!</string>
+</resources>
