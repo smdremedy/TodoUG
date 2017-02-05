@@ -4,4 +4,15 @@
     <string name="enter_your_password">Enter your password</string>
     <string name="sign_in">Sign In</string>
     <string name="this_field_is_required">This field is required!</string>
+    <string name="title_activity_todo_list">TodoListActivity</string>
+    <string name="add">Add</string>
+    <string name="refresh">Refresh</string>
+    <string name="logout">Logout</string>
+    <string name="confirm_logout">Confirm logout</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="what_needs_to_be_done">What needs to be done?</string>
+    <string name="done">Done</string>
+    <string name="add_todo">Add Todo</string>
 </resources>

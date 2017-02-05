@@ -1,6 +1,9 @@
 package com.soldiersofmobile.todoekspert;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Button;
@@ -27,6 +30,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity {
 
+    public static final String USERNAME = "username";
+    public static final String TOKEN = "token";
     @BindView(R.id.username_edit_text)
     EditText usernameEditText;
     @BindView(R.id.password_edit_text)
@@ -61,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void login(String username, String password) {
+    private void login(final String username, String password) {
 
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -83,6 +88,20 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                             String.format("user%s: token:%s", body.username, body.sessionToken),
                             Toast.LENGTH_LONG).show();
+
+                    SharedPreferences preferences =
+                            PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString(USERNAME, body.username);
+                    editor.putString(TOKEN, body.sessionToken);
+                    editor.apply();
+
+
+                    Intent intent = new Intent(LoginActivity.this, TodoListActivity.class);
+                    startActivity(intent);
+                    finish();
+
                 } else {
 
                     try {
@@ -104,8 +123,6 @@ public class LoginActivity extends AppCompatActivity {
                 t.printStackTrace();
             }
         });
-
-
 
 
     }
