@@ -3,6 +3,7 @@ package com.soldiersofmobile.todoekspert.api;
 import java.io.Serializable;
 
 public class Todo implements Serializable {
+    public String objectId;
     public String content;
     public boolean done;
 

@@ -23,10 +23,14 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.facebook.stetho.Stetho;
+import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.soldiersofmobile.todoekspert.api.ErrorResponse;
 import com.soldiersofmobile.todoekspert.api.Todo;
 import com.soldiersofmobile.todoekspert.api.TodoApi;
 import com.soldiersofmobile.todoekspert.api.TodosResponse;
+import com.soldiersofmobile.todoekspert.db.DbHelper;
+import com.soldiersofmobile.todoekspert.db.TodoDao;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -34,6 +38,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -58,12 +63,14 @@ public class TodoListActivity extends AppCompatActivity {
     private String token;
     //private ArrayAdapter<Todo> adapter;
     private TodoAdapter adapter;
+    private TodoDao todoDao;
 
     class TodoAdapter extends BaseAdapter {
 
         List<Todo> todos = new ArrayList<>();
 
         public void addAll(Todo[] todoArray) {
+            todos.clear();
             for (Todo todo : todoArray) {
                 todos.add(todo);
             }
@@ -120,6 +127,8 @@ public class TodoListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Stetho.initializeWithDefaults(this);
+
         preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         String username = preferences.getString(LoginActivity.USERNAME, "");
@@ -147,6 +156,8 @@ public class TodoListActivity extends AppCompatActivity {
 //                R.layout.item_todo, R.id.checkBox);
         adapter = new TodoAdapter();
         todoListView.setAdapter(adapter);
+
+        todoDao = new TodoDao(new DbHelper(this));
     }
 
     private void goToLogin() {
@@ -198,7 +209,12 @@ public class TodoListActivity extends AppCompatActivity {
 
     private void refresh() {
 
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addNetworkInterceptor(new StethoInterceptor())
+                .build();
+
         Retrofit retrofit = new Retrofit.Builder()
+                .client(client)
                 .baseUrl("https://parseapi.back4app.com")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -219,6 +235,7 @@ public class TodoListActivity extends AppCompatActivity {
 
                     for (Todo result : body.results) {
                         Log.d(TAG, result.toString());
+                        todoDao.insert(result, "");
                     }
 
 
