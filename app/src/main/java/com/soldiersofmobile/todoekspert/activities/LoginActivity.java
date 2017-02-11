@@ -1,15 +1,16 @@
-package com.soldiersofmobile.todoekspert;
+package com.soldiersofmobile.todoekspert.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.soldiersofmobile.todoekspert.App;
+import com.soldiersofmobile.todoekspert.R;
 import com.soldiersofmobile.todoekspert.api.ErrorResponse;
 import com.soldiersofmobile.todoekspert.api.TodoApi;
 import com.soldiersofmobile.todoekspert.api.User;
@@ -39,12 +40,18 @@ public class LoginActivity extends AppCompatActivity {
     EditText passwordEditText;
     @BindView(R.id.sign_in_button)
     Button signInButton;
+    private TodoApi todoApi;
+    private Converter<ResponseBody, ErrorResponse> converter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
+
+        App app = (App) getApplication();
+        todoApi = app.getTodoApi();
+        converter = app.getConverter();
     }
 
     @OnClick(R.id.sign_in_button)
@@ -70,15 +77,6 @@ public class LoginActivity extends AppCompatActivity {
     private void login(final String username, String password) {
 
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://parseapi.back4app.com")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        final Converter<ResponseBody, ErrorResponse> converter
-                = retrofit.responseBodyConverter(ErrorResponse.class, new Annotation[0]);
-
-
-        TodoApi todoApi = retrofit.create(TodoApi.class);
         Call<User> login = todoApi.getLogin(username, password);
 
         login.enqueue(new Callback<User>() {

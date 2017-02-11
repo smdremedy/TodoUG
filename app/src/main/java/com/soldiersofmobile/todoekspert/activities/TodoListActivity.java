@@ -1,4 +1,4 @@
-package com.soldiersofmobile.todoekspert;
+package com.soldiersofmobile.todoekspert.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,6 +27,8 @@ import android.widget.Toast;
 
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.okhttp3.StethoInterceptor;
+import com.soldiersofmobile.todoekspert.App;
+import com.soldiersofmobile.todoekspert.R;
 import com.soldiersofmobile.todoekspert.api.ErrorResponse;
 import com.soldiersofmobile.todoekspert.api.Todo;
 import com.soldiersofmobile.todoekspert.api.TodoApi;
@@ -69,6 +71,8 @@ public class TodoListActivity extends AppCompatActivity {
     private SimpleCursorAdapter adapter;
     private TodoDao todoDao;
     private String userId;
+    private TodoApi todoApi;
+    private Converter<ResponseBody, ErrorResponse> converter;
 
     class TodoAdapter extends BaseAdapter {
 
@@ -132,8 +136,6 @@ public class TodoListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Stetho.initializeWithDefaults(this);
-
         preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         String username = preferences.getString(LoginActivity.USERNAME, "");
@@ -178,6 +180,11 @@ public class TodoListActivity extends AppCompatActivity {
             }
         });
         todoListView.setAdapter(adapter);
+
+        App app = (App) getApplication();
+        todoApi = app.getTodoApi();
+        converter = app.getConverter();
+
 
     }
 
@@ -233,20 +240,7 @@ public class TodoListActivity extends AppCompatActivity {
 
     private void refresh() {
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addNetworkInterceptor(new StethoInterceptor())
-                .build();
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .client(client)
-                .baseUrl("https://parseapi.back4app.com")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        final Converter<ResponseBody, ErrorResponse> converter
-                = retrofit.responseBodyConverter(ErrorResponse.class, new Annotation[0]);
-
-
-        TodoApi todoApi = retrofit.create(TodoApi.class);
 
         Call<TodosResponse> call = todoApi.getTodos(token);
         call.enqueue(new Callback<TodosResponse>() {
