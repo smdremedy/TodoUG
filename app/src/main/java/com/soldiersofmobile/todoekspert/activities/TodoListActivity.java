@@ -29,6 +29,7 @@ import com.facebook.stetho.Stetho;
 import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.soldiersofmobile.todoekspert.App;
 import com.soldiersofmobile.todoekspert.R;
+import com.soldiersofmobile.todoekspert.RefreshIntentService;
 import com.soldiersofmobile.todoekspert.api.ErrorResponse;
 import com.soldiersofmobile.todoekspert.api.Todo;
 import com.soldiersofmobile.todoekspert.api.TodoApi;
@@ -164,8 +165,7 @@ public class TodoListActivity extends AppCompatActivity {
 //                R.layout.item_todo, R.id.checkBox);
         //adapter = new TodoAdapter();
         todoDao = new TodoDao(new DbHelper(this));
-        Cursor cursor = todoDao.getTodosByUser(userId);
-        adapter = new SimpleCursorAdapter(this, R.layout.item_todo, cursor,
+        adapter = new SimpleCursorAdapter(this, R.layout.item_todo, null,
                 FROM, TO, 0);
         adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
             @Override
@@ -185,10 +185,12 @@ public class TodoListActivity extends AppCompatActivity {
         todoApi = app.getTodoApi();
         converter = app.getConverter();
 
+        reloadCursor();
+
 
     }
 
-    private static final String[] FROM = {TodoDao.C_CONTENT, TodoDao.C_DONE, TodoDao.C_USER_ID};
+    private static final String[] FROM = {TodoDao.C_CONTENT, TodoDao.C_DONE, TodoDao.C_ID};
     private static final int[] TO = {R.id.checkBox, R.id.checkBox, R.id.button};
 
     private void goToLogin() {
@@ -240,7 +242,8 @@ public class TodoListActivity extends AppCompatActivity {
 
     private void refresh() {
 
-
+        Intent intent = new Intent(this, RefreshIntentService.class);
+        startService(intent);
 
         Call<TodosResponse> call = todoApi.getTodos(token);
         call.enqueue(new Callback<TodosResponse>() {
@@ -255,6 +258,8 @@ public class TodoListActivity extends AppCompatActivity {
                         Log.d(TAG, result.toString());
                         todoDao.insert(result, userId);
                     }
+
+                    reloadCursor();
 
 
                 }
@@ -276,10 +281,20 @@ public class TodoListActivity extends AppCompatActivity {
 
             if (resultCode == RESULT_OK) {
                 Todo todo = (Todo) data.getSerializableExtra("todo");
+
+                todoDao.insert(todo, userId);
+
+                reloadCursor();
+
                 Toast.makeText(this, "OK:" + todo.content, Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "CANCEL", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void reloadCursor() {
+        Cursor cursor = todoDao.getTodosByUser(userId);
+        adapter.swapCursor(cursor);
     }
 }
