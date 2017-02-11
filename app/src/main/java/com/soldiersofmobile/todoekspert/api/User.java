@@ -6,4 +6,5 @@ public class User {
 
     public String username;
     public String sessionToken;
+    public String objectId;
 }

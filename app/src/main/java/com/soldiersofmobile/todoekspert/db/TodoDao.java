@@ -1,6 +1,7 @@
 package com.soldiersofmobile.todoekspert.db;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.soldiersofmobile.todoekspert.api.Todo;
@@ -39,5 +40,13 @@ public class TodoDao {
 
         database.insertWithOnConflict(TABLE_NAME, null, contentValues,
                 SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    public Cursor getTodosByUser(String userId) {
+        SQLiteDatabase readableDatabase = dbHelper.getReadableDatabase();
+        String selection = String.format("%s=?", C_USER_ID);
+        String orderBy = String.format("%s ASC", C_CONTENT);
+        return readableDatabase.query(TABLE_NAME, null, selection, new String[]{userId},
+                null, null, orderBy);
     }
 }

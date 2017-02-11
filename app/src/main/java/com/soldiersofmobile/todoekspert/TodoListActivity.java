@@ -3,6 +3,7 @@ package com.soldiersofmobile.todoekspert;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
@@ -21,6 +22,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 import com.facebook.stetho.Stetho;
@@ -51,6 +53,7 @@ public class TodoListActivity extends AppCompatActivity {
 
     public static final int REQUEST_CODE = 123;
     private static final String TAG = TodoListActivity.class.getSimpleName();
+
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.todo_list_view)
@@ -62,8 +65,10 @@ public class TodoListActivity extends AppCompatActivity {
     private SharedPreferences preferences;
     private String token;
     //private ArrayAdapter<Todo> adapter;
-    private TodoAdapter adapter;
+    //private TodoAdapter adapter;
+    private SimpleCursorAdapter adapter;
     private TodoDao todoDao;
+    private String userId;
 
     class TodoAdapter extends BaseAdapter {
 
@@ -133,6 +138,7 @@ public class TodoListActivity extends AppCompatActivity {
 
         String username = preferences.getString(LoginActivity.USERNAME, "");
         token = preferences.getString(LoginActivity.TOKEN, "");
+        userId = preferences.getString(LoginActivity.USER_ID, "");
 
         if (username.isEmpty() || token.isEmpty()) {
             goToLogin();
@@ -154,11 +160,29 @@ public class TodoListActivity extends AppCompatActivity {
         });
 //        adapter = new ArrayAdapter<Todo>(this,
 //                R.layout.item_todo, R.id.checkBox);
-        adapter = new TodoAdapter();
+        //adapter = new TodoAdapter();
+        todoDao = new TodoDao(new DbHelper(this));
+        Cursor cursor = todoDao.getTodosByUser(userId);
+        adapter = new SimpleCursorAdapter(this, R.layout.item_todo, cursor,
+                FROM, TO, 0);
+        adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
+            @Override
+            public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+                if (columnIndex == cursor.getColumnIndex(TodoDao.C_DONE)) {
+                    boolean done = cursor.getInt(columnIndex) > 0;
+                    CheckBox checkBox = (CheckBox) view;
+                    checkBox.setChecked(done);
+                    return true;
+                }
+                return false;
+            }
+        });
         todoListView.setAdapter(adapter);
 
-        todoDao = new TodoDao(new DbHelper(this));
     }
+
+    private static final String[] FROM = {TodoDao.C_CONTENT, TodoDao.C_DONE, TodoDao.C_USER_ID};
+    private static final int[] TO = {R.id.checkBox, R.id.checkBox, R.id.button};
 
     private void goToLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
@@ -231,11 +255,11 @@ public class TodoListActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     TodosResponse body = response.body();
 
-                    adapter.addAll(body.results);
+                    //adapter.addAll(body.results);
 
                     for (Todo result : body.results) {
                         Log.d(TAG, result.toString());
-                        todoDao.insert(result, "");
+                        todoDao.insert(result, userId);
                     }
 
 

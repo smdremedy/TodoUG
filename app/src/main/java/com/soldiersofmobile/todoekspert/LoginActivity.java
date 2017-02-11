@@ -32,6 +32,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public static final String USERNAME = "username";
     public static final String TOKEN = "token";
+    public static final String USER_ID = "user_id";
     @BindView(R.id.username_edit_text)
     EditText usernameEditText;
     @BindView(R.id.password_edit_text)
@@ -95,6 +96,7 @@ public class LoginActivity extends AppCompatActivity {
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putString(USERNAME, body.username);
                     editor.putString(TOKEN, body.sessionToken);
+                    editor.putString(USER_ID, body.objectId);
                     editor.apply();
 
 
