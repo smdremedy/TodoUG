@@ -16,6 +16,7 @@
         <activity
             android:name=".activities.TodoListActivity"
             android:label="@string/title_activity_todo_list"
+            android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

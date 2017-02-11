@@ -1,7 +1,10 @@
 package com.soldiersofmobile.todoekspert.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -241,37 +244,29 @@ public class TodoListActivity extends AppCompatActivity {
     }
 
     private void refresh() {
-
         Intent intent = new Intent(this, RefreshIntentService.class);
         startService(intent);
+    }
 
-        Call<TodosResponse> call = todoApi.getTodos(token);
-        call.enqueue(new Callback<TodosResponse>() {
-            @Override
-            public void onResponse(Call<TodosResponse> call, Response<TodosResponse> response) {
-                if (response.isSuccessful()) {
-                    TodosResponse body = response.body();
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            reloadCursor();
+            Toast.makeText(context, "Refreshed", Toast.LENGTH_SHORT).show();
+        }
+    };
 
-                    //adapter.addAll(body.results);
+    @Override
+    protected void onStart() {
+        super.onStart();
+        registerReceiver(receiver, new IntentFilter(RefreshIntentService.REFRESH_ACTION));
 
-                    for (Todo result : body.results) {
-                        Log.d(TAG, result.toString());
-                        todoDao.insert(result, userId);
-                    }
+    }
 
-                    reloadCursor();
-
-
-                }
-            }
-
-            @Override
-            public void onFailure(Call<TodosResponse> call, Throwable t) {
-
-            }
-        });
-
-
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(receiver);
     }
 
     @Override
